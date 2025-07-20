@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Precision 3D Forge - Contact Us - Get a Quote</title>
+    <title>Precision 3D Forge - Custom Print Request</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -22,7 +22,7 @@
             transform: translateY(-3px);
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
         }
-        /* Style for form success/error messages */
+        /* Style for form success/error messages (inline) */
         .message-box {
             padding: 1rem;
             border-radius: 0.5rem;
@@ -38,9 +38,39 @@
             background-color: #fee2e2; /* Red-100 */
             color: #991b1b; /* Red-800 */
         }
+
+        /* Styles for the floating pop-up notification */
+        #notification-popup {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000; /* Ensure it's on top of other content */
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        #notification-popup.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #notification-popup.success {
+            background-color: #10b981; /* Green-500 */
+            color: white;
+        }
+        #notification-popup.error {
+            background-color: #ef4444; /* Red-500 */
+            color: white;
+        }
     </style>
 </head>
 <body class="antialiased">
+    <!-- Floating Pop-up Notification -->
+    <div id="notification-popup" class="font-bold"></div>
+
     <!-- Header Section (consistent with other pages) -->
     <header class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 shadow-lg">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
@@ -58,15 +88,14 @@
     <!-- Custom Print Request Section -->
     <section id="request-form" class="py-20 bg-gray-100">
         <div class="container mx-auto px-4 max-w-2xl text-center">
-            <h2 class="text-4xl font-bold text-gray-800 mb-8">Contact Us</h2>
+            <h2 class="text-4xl font-bold text-gray-800 mb-8">Request a Custom 3D Print</h2>
             <p class="text-lg text-gray-700 mb-8">
                 Have a unique idea or a specific part you need 3D printed? Tell us about your project below!
                 We specialize in high-quality, carbon-infused black PLA prints.
             </p>
 
             <!-- Form for Custom Print Request -->
-            <!-- IMPORTANT: Replace "YOUR_FORMSPREE_ENDPOINT" with your actual Formspree endpoint -->
-            <form id="customPrintForm" action="https://formspree.io/f/https://formspree.io/f/xpwlqdea" method="POST" class="space-y-6 bg-white p-8 rounded-lg shadow-lg">
+            <form id="customPrintForm" action="https://formspree.io/f/xpwlqdea" method="POST" class="space-y-6 bg-white p-8 rounded-lg shadow-lg">
                 <div>
                     <label for="comment" class="block text-left text-gray-700 text-sm font-bold mb-2">Project Details / Comments:</label>
                     <textarea id="comment" name="comment" rows="8" required
@@ -88,7 +117,7 @@
                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover-effect">
                     Submit Request
                 </button>
-                <!-- Message box for success/error feedback -->
+                <!-- Message box for success/error feedback (kept for inline messages if preferred, but popup is primary) -->
                 <div id="formStatusMessage" class="message-box hidden"></div>
             </form>
         </div>
@@ -110,13 +139,31 @@
     <script>
         // JavaScript to handle form submission and display messages
         const form = document.getElementById('customPrintForm');
-        const formStatusMessage = document.getElementById('formStatusMessage');
+        const formStatusMessage = document.getElementById('formStatusMessage'); // Inline message box
+        const notificationPopup = document.getElementById('notification-popup'); // Floating popup
+
+        // Function to display the floating notification
+        function showNotification(message, type) {
+            notificationPopup.textContent = message;
+            notificationPopup.classList.add(type, 'show');
+
+            // Hide after 5 seconds
+            setTimeout(() => {
+                notificationPopup.classList.remove('show');
+                // Clear content and type after transition
+                setTimeout(() => {
+                    notificationPopup.textContent = '';
+                    notificationPopup.classList.remove(type);
+                }, 300); // Match CSS transition duration
+            }, 5000);
+        }
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault(); // Prevent default form submission
 
-            formStatusMessage.classList.add('hidden'); // Hide previous messages
-            formStatusMessage.classList.remove('success', 'error'); // Clear previous styles
+            // Clear and hide inline message
+            formStatusMessage.classList.add('hidden');
+            formStatusMessage.classList.remove('success', 'error');
 
             const formData = new FormData(form);
 
@@ -130,25 +177,19 @@
                 });
 
                 if (response.ok) {
-                    formStatusMessage.textContent = 'Your request has been sent successfully! We will get back to you soon.';
-                    formStatusMessage.classList.add('success');
+                    showNotification('Your request has been sent successfully! We will get back to you soon.', 'success');
                     form.reset(); // Clear the form fields
                 } else {
                     const data = await response.json();
+                    let errorMessage = 'Oops! There was a problem submitting your request.';
                     if (data.errors) {
-                        // Display specific errors from Formspree if available
-                        formStatusMessage.textContent = 'Error: ' + data.errors.map(err => err.message).join(', ');
-                    } else {
-                        formStatusMessage.textContent = 'Oops! There was a problem submitting your request.';
+                        errorMessage = 'Error: ' + data.errors.map(err => err.message).join(', ');
                     }
-                    formStatusMessage.classList.add('error');
+                    showNotification(errorMessage, 'error');
                 }
             } catch (error) {
                 console.error('Submission error:', error);
-                formStatusMessage.textContent = 'An unexpected error occurred. Please try again later.';
-                formStatusMessage.classList.add('error');
-            } finally {
-                formStatusMessage.classList.remove('hidden'); // Show the message
+                showNotification('An unexpected error occurred. Please try again later.', 'error');
             }
         });
     </script>
