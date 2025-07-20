@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precision 3D Forge - Custom Print Request</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the Inter font and smooth scrolling */
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+            background-color: #f8fafc; /* Light blue-gray background */
+            color: #334155; /* Darker text color */
+        }
+        /* Style for smooth transitions on hover */
+        .hover-effect {
+            transition: all 0.3s ease-in-out;
+        }
+        .hover-effect:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        /* Style for form success/error messages */
+        .message-box {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        .message-box.success {
+            background-color: #d1fae5; /* Green-100 */
+            color: #065f46; /* Green-800 */
+        }
+        .message-box.error {
+            background-color: #fee2e2; /* Red-100 */
+            color: #991b1b; /* Red-800 */
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Header Section (consistent with other pages) -->
+    <header class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 shadow-lg">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
+            <h1 class="text-4xl font-bold mb-4 md:mb-0">Precision 3D Forge</h1>
+            <nav>
+                <ul class="flex space-x-6 text-lg">
+                    <li><a href="index.html#about" class="hover:text-blue-200 rounded-md p-2 hover-effect">About</a></li>
+                    <li><a href="products.html" class="hover:text-blue-200 rounded-md p-2 hover-effect">Products</a></li>
+                    <li><a href="index.html#contact" class="hover:text-blue-200 rounded-md p-2 hover-effect">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Custom Print Request Section -->
+    <section id="request-form" class="py-20 bg-gray-100">
+        <div class="container mx-auto px-4 max-w-2xl text-center">
+            <h2 class="text-4xl font-bold text-gray-800 mb-8">Request a Custom 3D Print</h2>
+            <p class="text-lg text-gray-700 mb-8">
+                Have a unique idea or a specific part you need 3D printed? Tell us about your project below!
+                We specialize in high-quality, carbon-infused black PLA prints.
+            </p>
+
+            <!-- Form for Custom Print Request -->
+            <!-- IMPORTANT: Replace "YOUR_FORMSPREE_ENDPOINT" with your actual Formspree endpoint -->
+            <form id="customPrintForm" action="https://formspree.io/f/YOUR_FORMSPREE_ENDPOINT" method="POST" class="space-y-6 bg-white p-8 rounded-lg shadow-lg">
+                <div>
+                    <label for="comment" class="block text-left text-gray-700 text-sm font-bold mb-2">Project Details / Comments:</label>
+                    <textarea id="comment" name="comment" rows="8" required
+                              class="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Describe your project, desired dimensions, quantity, and any other relevant details."></textarea>
+                </div>
+                <div>
+                    <label for="email" class="block text-left text-gray-700 text-sm font-bold mb-2">Your Email:</label>
+                    <input type="email" id="email" name="email" required
+                           class="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="your.email@example.com">
+                </div>
+                <div>
+                    <label for="phone" class="block text-left text-gray-700 text-sm font-bold mb-2">Your Phone Number (Optional):</label>
+                    <input type="tel" id="phone" name="phone"
+                           class="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="e.g., 555-123-4567">
+                </div>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover-effect">
+                    Submit Request
+                </button>
+                <!-- Message box for success/error feedback -->
+                <div id="formStatusMessage" class="message-box hidden"></div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer Section (consistent with other pages) -->
+    <footer class="bg-gray-800 text-white p-6 text-center">
+        <div class="container mx-auto">
+            <p>&copy; 2025 Precision 3D Forge. All rights reserved.</p>
+            <div class="flex justify-center space-x-4 mt-4">
+                <!-- Social Media Links (replace # with actual URLs) -->
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300">LinkedIn</a>
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300">GitHub</a>
+                <a href="#" class="text-gray-400 hover:text-white transition duration-300">Twitter</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript to handle form submission and display messages
+        const form = document.getElementById('customPrintForm');
+        const formStatusMessage = document.getElementById('formStatusMessage');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent default form submission
+
+            formStatusMessage.classList.add('hidden'); // Hide previous messages
+            formStatusMessage.classList.remove('success', 'error'); // Clear previous styles
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json' // Formspree requires this for AJAX submission
+                    }
+                });
+
+                if (response.ok) {
+                    formStatusMessage.textContent = 'Your request has been sent successfully! We will get back to you soon.';
+                    formStatusMessage.classList.add('success');
+                    form.reset(); // Clear the form fields
+                } else {
+                    const data = await response.json();
+                    if (data.errors) {
+                        // Display specific errors from Formspree if available
+                        formStatusMessage.textContent = 'Error: ' + data.errors.map(err => err.message).join(', ');
+                    } else {
+                        formStatusMessage.textContent = 'Oops! There was a problem submitting your request.';
+                    }
+                    formStatusMessage.classList.add('error');
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                formStatusMessage.textContent = 'An unexpected error occurred. Please try again later.';
+                formStatusMessage.classList.add('error');
+            } finally {
+                formStatusMessage.classList.remove('hidden'); // Show the message
+            }
+        });
+    </script>
+</body>
+</html>
